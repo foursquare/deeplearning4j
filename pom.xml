@@ -278,7 +278,7 @@
                 <artifactId>scala-maven-plugin</artifactId>
                 <version>3.2.2</version>
                 <configuration>
-                    <scalaVersion>2.10.6</scalaVersion>
+                    <scalaVersion>2.11.8</scalaVersion>
                     <args>
                         <arg>-deprecation</arg>
                         <arg>-explaintypes</arg>
@@ -462,6 +462,12 @@
                 <version>${junit.version}</version>
                 <scope>test</scope>
             </dependency>
+
+            <dependency>
+                <groupId>org.scala-lang</groupId>
+                <artifactId>scala-library</artifactId>
+            <version>2.11.8</version>
+        </dependency>
         </dependencies>
     </dependencyManagement>
 
