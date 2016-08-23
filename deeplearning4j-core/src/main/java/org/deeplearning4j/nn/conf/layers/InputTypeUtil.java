@@ -31,12 +31,12 @@ public class InputTypeUtil {
         int sW = stride[1];
 
         if ((inHeight - kH + 2 * padH) % sH != 0) {
-            throw new IllegalStateException("Invalid input configuration (layer name = \"" + layerName + "\") for height: inHeight=" + inHeight + ", kernelH="
+            log.warn("Invalid input configuration (layer name = \"" + layerName + "\") for height: inHeight=" + inHeight + ", kernelH="
                     + kH + ", padH=" + padH + ", strideH=" + sH + "; (" + inHeight + "-" + kH + "+2*" + padH + ")/" + sH
                     + " is not an integer");
         }
         if ((inWidth - kW + 2 * padW) % sW != 0) {
-            throw new IllegalStateException("Invalid input configuration (layer name = \"" + layerName + "\") for width: inWidth=" + inWidth + ", kernelW="
+            log.warn("Invalid input configuration (layer name = \"" + layerName + "\") for width: inWidth=" + inWidth + ", kernelW="
                     + kW + ", padW=" + padW + ", strideW=" + sW + "; (" + inWidth + "-" + kW + "+2*" + padW + ")/" + sW
                     + " is not an integer");
         }
