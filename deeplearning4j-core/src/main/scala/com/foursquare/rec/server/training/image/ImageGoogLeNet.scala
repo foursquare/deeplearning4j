@@ -159,7 +159,7 @@ class GoogLeNetBuilder(
         .nOut(32)
         .biasInit(0.2)
         .build(), "cnn4", "cnn7", "cnn8", "cnn9")
-      .addLayer("max3", new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX, Array(
+      .addLayer("max3", new SubsamplingLayer.Builder(Array(
         3, 3
       ), Array(
         1, 1
@@ -189,7 +189,7 @@ class GoogLeNetBuilder(
         .biasInit(0.2)
         .build(), "max3")
       ///
-      .addLayer("max4", new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX, Array(
+      .addLayer("max4", new SubsamplingLayer.Builder(Array(
       3, 3
     ), Array(
       1, 1
@@ -215,7 +215,7 @@ class GoogLeNetBuilder(
         .nOut(16)
         .biasInit(0.2)
         .build(), "max4")
-      .addLayer("max5", new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX, Array(
+      .addLayer("max5", new SubsamplingLayer.Builder(Array(
         3, 3
       ), Array(
         1, 1
@@ -266,7 +266,7 @@ class GoogLeNetBuilder(
         .biasInit(0.2)
         .build(), "cnn16", "cnn19", "cnn20", "cnn21")
       // bug
-      .addLayer("max6", new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX, Array(
+      .addLayer("max6", new SubsamplingLayer.Builder(Array(
         3, 3
       ), Array(
         1, 1
@@ -314,7 +314,7 @@ class GoogLeNetBuilder(
         .nOut(24)
         .biasInit(0.2)
         .build(), "cnn22", "cnn25", "cnn26", "cnn27")
-      .addLayer("max7", new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX, Array(
+      .addLayer("max7", new SubsamplingLayer.Builder(Array(
         3, 3
       ), Array(
         1, 1
@@ -368,7 +368,7 @@ class GoogLeNetBuilder(
         .nOut(32)
         .biasInit(0.2)
         .build(), "cnn28", "cnn31", "cnn32", "cnn33")
-      .addLayer("max8", new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX, Array(
+      .addLayer("max8", new SubsamplingLayer.Builder(Array(
         3, 3
       ), Array(
         1, 1
@@ -416,7 +416,7 @@ class GoogLeNetBuilder(
         .nOut(24)
         .biasInit(0.2)
         .build(), "cnn22", "cnn25", "cnn26", "cnn27")
-      .addLayer("max9", new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX, Array(
+      .addLayer("max9", new SubsamplingLayer.Builder(Array(
         3, 3
       ), Array(
         1, 1
@@ -464,7 +464,7 @@ class GoogLeNetBuilder(
         .nOut(32)
         .biasInit(0.2)
         .build(), "cnn40", "cnn43", "cnn44", "cnn45")
-      .addLayer("max00", new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX, Array(
+      .addLayer("max00", new SubsamplingLayer.Builder(Array(
         3, 3
       ), Array(
         1, 1
@@ -500,7 +500,7 @@ class GoogLeNetBuilder(
         .biasInit(0.2)
         .build(), "max00")
       ///
-      .addLayer("max01", new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX, Array(
+      .addLayer("max01", new SubsamplingLayer.Builder(Array(
       3, 3
     ), Array(
       1, 1
@@ -527,7 +527,7 @@ class GoogLeNetBuilder(
         .nOut(32)
         .biasInit(0.2)
         .build(), "max01")
-      .addLayer("max02", new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX, Array(
+      .addLayer("max02", new SubsamplingLayer.Builder(Array(
         3, 3
       ), Array(
         1, 1
@@ -575,7 +575,7 @@ class GoogLeNetBuilder(
         .nOut(48)
         .biasInit(0.2)
         .build(), "cnn52", "cnn55", "cnn56", "cnn57")
-      .addLayer("max03", new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX, Array(
+      .addLayer("max03", new SubsamplingLayer.Builder(Array(
         3, 3
       ), Array(
         1, 1
