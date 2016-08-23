@@ -72,6 +72,11 @@
                 <scope>test</scope>
             </dependency>
             <dependency>
+                <groupId>org.deeplearning4j</groupId>
+                <artifactId>dl4j-caffe</artifactId>
+                <version>0.5.0</version>
+            </dependency>
+            <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-math3</artifactId>
                 <version>${commonsmath.version}</version>
@@ -79,7 +84,11 @@
         </dependencies>
     </dependencyManagement>
     <dependencies>
-
+        <dependency>
+            <groupId>edu.h2r</groupId>
+            <artifactId>caffe_jni</artifactId>
+            <version>1.0.0</version>
+        </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
