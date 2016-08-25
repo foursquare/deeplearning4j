@@ -51,24 +51,25 @@ class GoogLeNetBuilder(
       .addInputs("input")
       .setInputTypes(InputType.convolutional(height, width, channels))
       .addLayer("cnn1", new ConvolutionLayer.Builder(Array( // conv1/7x7_s2
-        7, 7
+        7, 7 // kernelSize
       ), Array(
-        2, 2
+        2, 2 // stride
       ), Array(
-        3, 3
+        3, 3 // padding
       ))
         .nIn(channels)
         .nOut(64)
         .biasInit(0.2)
         .build(), "input")
-      .addLayer("max0", new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX, Array( // conv1/relu_7x7
-        3, 3
+      // Where is conv1/relu_7x7
+      .addLayer("max0", new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX, Array( // pool1/3x3_s2
+        3, 3 // kernelSize
       ), Array(
-        2, 2
+        2, 2 // stride
       ))
         .build(), "cnn1")
-      .addLayer("lrn1", new LocalResponseNormalization.Builder(5, 1e-4, 0.75).build(), "max0")
-      .addLayer("cnn2", new ConvolutionLayer.Builder(Array(
+      .addLayer("lrn1", new LocalResponseNormalization.Builder(5, 1e-4, 0.75).build(), "max0") // pool1/norm1
+      .addLayer("cnn2", new ConvolutionLayer.Builder(Array( // conv2/3x3_reduce ?
         1, 1
       ), Array(
         2, 2
@@ -78,7 +79,8 @@ class GoogLeNetBuilder(
         .nOut(64)
         .biasInit(0.2)
         .build(), "lrn1")
-      .addLayer("cnn3", new ConvolutionLayer.Builder(Array(
+      // Where is conv2/relu_3x3
+      .addLayer("cnn3", new ConvolutionLayer.Builder(Array( // conv2/3x3
         3, 3
       ), Array(
         2, 2
@@ -88,7 +90,7 @@ class GoogLeNetBuilder(
         .nOut(192)
         .biasInit(0.2)
         .build(), "cnn2")
-      .addLayer("lrn2", new LocalResponseNormalization.Builder(5, 1e-4, 0.75).build(), "cnn3")
+      .addLayer("lrn2", new LocalResponseNormalization.Builder(5, 1e-4, 0.75).build(), "cnn3") // conv2/norm2
       .addLayer("max1", new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX, Array(
       3, 3
     ), Array(
@@ -135,7 +137,7 @@ class GoogLeNetBuilder(
         .biasInit(0.2)
         .build(), "cnn6")
       .addLayer("cnn9", new ConvolutionLayer.Builder(Array(
-        3, 3
+        1, 1
       ): _*)
         .nOut(32)
         .biasInit(0.2)
@@ -464,7 +466,7 @@ class GoogLeNetBuilder(
         .nOut(32)
         .biasInit(0.2)
         .build(), "cnn40", "cnn43", "cnn44", "cnn45")
-      .addLayer("max00", new SubsamplingLayer.Builder(Array(
+      .addLayer("max10", new SubsamplingLayer.Builder(Array(
         3, 3
       ), Array(
         1, 1
@@ -498,9 +500,9 @@ class GoogLeNetBuilder(
       ): _*)
         .nOut(128)
         .biasInit(0.2)
-        .build(), "max00")
+        .build(), "max10")
       ///
-      .addLayer("max01", new SubsamplingLayer.Builder(Array(
+      .addLayer("max11", new SubsamplingLayer.Builder(Array(
       3, 3
     ), Array(
       1, 1
@@ -514,27 +516,27 @@ class GoogLeNetBuilder(
       ): _*)
         .nOut(256)
         .biasInit(0.2)
-        .build(), "max01")
+        .build(), "max11")
       .addLayer("cnn53", new ConvolutionLayer.Builder(Array(
         1, 1
       ): _*)
         .nOut(160)
         .biasInit(0.2)
-        .build(), "max01")
+        .build(), "max11")
       .addLayer("cnn54", new ConvolutionLayer.Builder(Array(
         1, 1
       ): _*)
         .nOut(32)
         .biasInit(0.2)
-        .build(), "max01")
-      .addLayer("max02", new SubsamplingLayer.Builder(Array(
+        .build(), "max11")
+      .addLayer("max12", new SubsamplingLayer.Builder(Array(
         3, 3
       ), Array(
         1, 1
       ), Array(
         1, 1
       ))
-        .build(), "max01")
+        .build(), "max11")
 
       .addLayer("cnn55", new ConvolutionLayer.Builder(Array(
         3, 3
@@ -555,7 +557,7 @@ class GoogLeNetBuilder(
       ): _*)
         .nOut(128)
         .biasInit(0.2)
-        .build(), "max02")
+        .build(), "max12")
 
       .addLayer("cnn58", new ConvolutionLayer.Builder(Array(
         1, 1
@@ -575,7 +577,7 @@ class GoogLeNetBuilder(
         .nOut(48)
         .biasInit(0.2)
         .build(), "cnn52", "cnn55", "cnn56", "cnn57")
-      .addLayer("max03", new SubsamplingLayer.Builder(Array(
+      .addLayer("max13", new SubsamplingLayer.Builder(Array(
         3, 3
       ), Array(
         1, 1
@@ -603,7 +605,7 @@ class GoogLeNetBuilder(
       ): _*)
         .nOut(128)
         .biasInit(0.2)
-        .build(), "max03")
+        .build(), "max13")
 
       .addLayer("avg3", new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.AVG, Array(
         7, 7

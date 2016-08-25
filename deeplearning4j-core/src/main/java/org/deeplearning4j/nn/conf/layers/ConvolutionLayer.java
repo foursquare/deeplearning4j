@@ -17,6 +17,10 @@ public class ConvolutionLayer extends FeedForwardLayer {
     protected int[] stride; // Default is 2. Down-sample by a factor of 2
     protected int[] padding;
 
+    public int[] getKernelSize() { return kernelSize; }
+    public int[] getStride() { return stride; }
+    public int[] getPadding() { return padding; }
+
     /**
     * ConvolutionLayer
     * nIn in the input layer is the number of channels

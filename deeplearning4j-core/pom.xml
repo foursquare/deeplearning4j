@@ -85,8 +85,13 @@
     </dependencyManagement>
     <dependencies>
         <dependency>
-            <groupId>edu.h2r</groupId>
-            <artifactId>caffe_jni</artifactId>
+            <groupId>com.google.protobuf</groupId>
+            <artifactId>protobuf-java</artifactId>
+            <version>2.5.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.caffe</groupId>
+            <artifactId>caffe_protobuf</artifactId>
             <version>1.0.0</version>
         </dependency>
         <dependency>

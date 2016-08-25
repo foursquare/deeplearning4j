@@ -18,6 +18,11 @@ public class LocalResponseNormalization extends Layer {
     protected double beta; // decay rate
     protected double alpha; // decay rate
 
+    public double getN() { return n; }
+    public double getK() { return k; }
+    public double getBeta() { return beta; }
+    public double getAlpha() { return alpha; }
+
     private LocalResponseNormalization(Builder builder) {
         super(builder);
         this.k = builder.k;

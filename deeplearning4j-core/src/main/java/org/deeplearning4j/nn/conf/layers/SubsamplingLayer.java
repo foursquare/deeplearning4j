@@ -28,6 +28,11 @@ public class SubsamplingLayer extends Layer {
         MAX, AVG, SUM, NONE
     }
 
+    public PoolingType getPoolingType() { return poolingType; }
+    public int[] getKernelSize() { return kernelSize; }
+    public int[] getStride() { return stride; }
+    public int[] getPadding() { return padding; }
+
     private SubsamplingLayer(Builder builder) {
         super(builder);
         this.poolingType = builder.poolingType;

@@ -141,6 +141,8 @@ public class NeuralNetConfiguration implements Serializable,Cloneable {
         return l2ByParam.get(variable);
     }
 
+    public Layer getLayer() { return layer; }
+
 
     /**
      * Fluent interface for building a list of configurations
