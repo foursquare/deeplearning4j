@@ -2,15 +2,17 @@
 
 package com.foursquare.rec.server.training.image
 
-import java.io.FileInputStream
+import java.io.{FileInputStream, InputStreamReader}
 
-import caffe.Caffe.{LayerParameter, NetParameter}
+import caffe.Caffe.PoolingParameter.PoolMethod
+import caffe.Caffe.{LayerParameter, NetParameter, NetStateRule, Phase}
 import org.deeplearning4j.nn.api.OptimizationAlgorithm
 import org.deeplearning4j.nn.conf.graph.{GraphVertex, LayerVertex}
 import org.deeplearning4j.nn.conf.inputs.InputType
-import org.deeplearning4j.nn.conf.layers.{ConvolutionLayer, LocalResponseNormalization, SubsamplingLayer}
+import org.deeplearning4j.nn.conf.layers.{ConvolutionLayer, DenseLayer, LocalResponseNormalization, OutputLayer, SubsamplingLayer}
 import org.deeplearning4j.nn.conf.{ComputationGraphConfiguration, LearningRatePolicy, NeuralNetConfiguration, Updater}
 import org.deeplearning4j.nn.weights.WeightInit
+import org.nd4j.linalg.lossfunctions.LossFunctions
 
 import collection.JavaConverters._
 import scala.collection.mutable
@@ -91,39 +93,42 @@ class ComparableComputationGraphConfiguration(conf: ComputationGraphConfiguratio
     queue += startLayer
     targetQueue += targetStartLayer
 
-    while(queue.nonEmpty && targetQueue.nonEmpty && ret) {
+    while (queue.nonEmpty && targetQueue.nonEmpty && ret) {
       val layer = queue.dequeue
       val targetLayer = targetQueue.dequeue
 
-      ret = compareVerteces(conf.vertices.get(layer), target.vertices.get(targetLayer))
+      ret = compareVerteces(conf.getVertices.get(layer), target.getVertices.get(targetLayer))
 
       if (!ret) {
         println(s"Graphs are not equal between layers s[$layer] and s[$targetLayer]")
       }
 
       // TODO(zen): fix to real graph walk through
-      queue ++= conf.networkInputs.asScala
-      targetQueue ++= target.networkInputs.asScala
+      queue ++= conf.getNetworkInputs.asScala
+      targetQueue ++= target.getNetworkInputs.asScala
     }
 
     ret
   }
 }
 
-class NetComparer {
+object NetComparer {
   def loadCaffeModel(caffeModelPath: String): NetParameter = {
-    val modelStream = new FileInputStream(caffeModelPath)
-    val netParameter = NetParameter.parseFrom(modelStream)
+    val modelStreamReader = new InputStreamReader(new FileInputStream(caffeModelPath))
+    val netParameterBuilder = NetParameter.newBuilder
 
-    modelStream.close
+    com.google.protobuf.TextFormat.merge(modelStreamReader, netParameterBuilder)
 
-    netParameter
+    modelStreamReader.close
+
+    netParameterBuilder.build
   }
 
   def convertToGraph(
     caffeNet: NetParameter,
     seed: Long = 123l,
-    iterations: Int = 90
+    iterations: Int = 90,
+    outputNum: Int = 1000
   ): ComparableComputationGraphConfiguration = {
     val builder: ComputationGraphConfiguration.GraphBuilder = new NeuralNetConfiguration.Builder()
       .seed(seed)
@@ -158,31 +163,53 @@ class NetComparer {
       layerMap += layer.getName -> layer
 
       val name = layer.getName
-      val bottom = layer.getBottom(0)
+
       val top = layer.getTop(0)
 
       layer.getType match {
+        case "Data" => {
+          if (layer.getIncludeCount > 0 && layer.getInclude(0).getPhase == Phase.TRAIN) {
+            val cropSize = layer.getTransformParam.getCropSize
+
+            builder.addInputs(name)
+            builder.setInputTypes(InputType.convolutional(cropSize, cropSize, 3))
+          }
+        }
         case "Convolution" => {
+          val bottom = layer.getBottom(0)
           val convolutionParam = layer.getConvolutionParam
 
           val numOutput = convolutionParam.getNumOutput
-          val padH = convolutionParam.getPadH
-          val padW = convolutionParam.getPadW
-          val kernelSizeH = convolutionParam.getKernelH
-          val kernelSizeW = convolutionParam.getKernelW
-          val getStrideH = convolutionParam.getStrideH
-          val getStrideW = convolutionParam.getStrideW
+          val padOpt = convolutionParam.getPadList.asScala.headOption
+          val kernelSizeOpt = convolutionParam.getKernelSizeList.asScala.headOption
+          val strideOpt = convolutionParam.getStrideList.asScala.headOption
 
           val weightFilterType = convolutionParam.getWeightFiller.getType
           val biasFilterType = convolutionParam.getBiasFiller.getType
 
-          val convLayerBuilder = new ConvolutionLayer.Builder(Array( // conv1/7x7_s2
-            kernelSizeH, kernelSizeW // kernelSize
-          ), Array(
-            getStrideH, getStrideW // stride
-          ), Array(
-            padH, padW // padding
-          ))
+          val convLayerBuilder = kernelSizeOpt.map(kernelSize => {
+            strideOpt.map(stride => {
+              padOpt.map(pad => {
+                new ConvolutionLayer.Builder(Array(// conv1/7x7_s2
+                  kernelSize.toInt, kernelSize.toInt // kernelSize
+                ), Array(
+                  stride.toInt, stride.toInt // stride
+                ), Array(
+                  pad.toInt, pad.toInt // padding
+                ))
+              }).getOrElse(
+                new ConvolutionLayer.Builder(Array(// conv1/7x7_s2
+                  kernelSize.toInt, kernelSize.toInt // kernelSize
+                ), Array(
+                  stride.toInt, stride.toInt // stride
+                ))
+              )
+            }).getOrElse(
+              new ConvolutionLayer.Builder(kernelSize.toInt, kernelSize.toInt)
+            )
+          }).getOrElse(
+            throw new Exception(s"Kernel is missing in $name")
+          )
 
           val bottoms = unclosedLayerMap.lift(bottom).map(layer => {
             (0 until layer.getBottomCount).map(idx =>
@@ -210,16 +237,17 @@ class NetComparer {
           val biasFilterValue = convolutionParam.getBiasFiller.getValue
           val convLayer = convLayerBuilder.biasInit(biasFilterValue).build
 
-          builder.addLayer(name, convLayer, bottoms:_*)
+          builder.addLayer(name, convLayer, bottoms: _*)
         }
         case "Pooling" => {
+          val bottom = layer.getBottom(0)
           val poolingParam = layer.getPoolingParam
           val pool = poolingParam.getPool
 
-          val kernelH = poolingParam.getKernelH
-          val kernelW = poolingParam.getKernelW
-          val strideH = poolingParam.getStrideH
-          val strideW = poolingParam.getStrideW
+          val kernelH = poolingParam.getKernelSize
+          val kernelW = poolingParam.getKernelSize
+          val strideH = poolingParam.getStride
+          val strideW = poolingParam.getStride
 
           val bottoms = unclosedLayerMap.lift(bottom).map(layer => {
             (0 until layer.getBottomCount).map(idx =>
@@ -229,15 +257,15 @@ class NetComparer {
             Vector(bottom)
           )
 
-          val subSamplingLayer = pool.getDescriptorForType.getName match {
-            case "MAX" => {
+          val subSamplingLayer = pool match {
+            case PoolMethod.MAX => {
               new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX, Array(
                 kernelH, kernelW
               ), Array(
                 strideH, strideW
               )).build
             }
-            case "AVE" => {
+            case PoolMethod.AVE => {
               new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.AVG, Array(
                 kernelH, kernelW
               ), Array(
@@ -246,9 +274,10 @@ class NetComparer {
             }
           }
 
-          builder.addLayer(name, subSamplingLayer, bottoms:_*)
+          builder.addLayer(name, subSamplingLayer, bottoms: _*)
         }
         case "LRN" => {
+          val bottom = layer.getBottom(0)
           val lrnParam = layer.getLrnParam
           val localSize = lrnParam.getLocalSize
           val alpha = lrnParam.getAlpha
@@ -266,10 +295,13 @@ class NetComparer {
             localSize, alpha, beta
           ).build
 
-          builder.addLayer(name, localResponseNormalizationLayer, bottoms:_*)
+          builder.addLayer(name, localResponseNormalizationLayer, bottoms: _*)
         }
         case "ReLU" => {
-          if (bottom != top || !layerMap.contains(bottom) || layerMap(bottom).getType != "Convolution") {
+          val bottom = layer.getBottom(0)
+          if (bottom != top || !layerMap.contains(bottom) ||
+            (layerMap(bottom).getType != "Convolution" && layerMap(bottom).getType != "InnerProduct")
+          ) {
             throw new Exception("ReLU without Convolutional layer")
           }
 
@@ -279,19 +311,35 @@ class NetComparer {
           unclosedLayerMap += name -> layer
         }
         case "InnerProduct" => {
-          // TBD
+          val bottom = layer.getBottom(0)
+          // Hard rule
+          val dropoutName = s"${name.split('/')(0)}/drop_${name.split('/')(1)}"
+
+          // Fix
+          val denseLayer = new DenseLayer.Builder().nOut(1000).build()
+
+          builder.addLayer(name, denseLayer, bottom)
         }
         case "SoftmaxWithLoss" => {
-          // TBD
+          val bottom = layer.getBottom(0)
+          val outputLayer = new OutputLayer.Builder(LossFunctions.LossFunction.NEGATIVELOGLIKELIHOOD)
+            .nOut(outputNum)
+            .activation("softmax")
+            .build
+
+          builder.addLayer(name, outputLayer, bottom)
+          builder.setOutputs(name)
         }
         case "Accuracy" => {
-          // TBD
+          // Ignore
         }
         case "Dropout" => {
-          // TBD
+          unclosedLayerMap += name -> layer
         }
       }
     })
+
+    builder.backprop(true).pretrain(false)
 
     new ComparableComputationGraphConfiguration(builder.build)
   }

@@ -59,10 +59,14 @@ public class ComputationGraphConfiguration implements Serializable, Cloneable {
     protected Map<String, GraphVertex> vertices = new LinkedHashMap<>();
     protected Map<String, List<String>> vertexInputs = new LinkedHashMap<>();
 
+    public Map<String, GraphVertex> getVertices() { return vertices; }
+
     /**
      * List of inputs to the network, by name
      */
     protected List<String> networkInputs;
+
+    public List<String> getNetworkInputs() { return networkInputs; }
 
     /**
      * List of network outputs, by name

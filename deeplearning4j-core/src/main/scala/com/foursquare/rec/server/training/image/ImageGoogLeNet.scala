@@ -31,7 +31,7 @@ class GoogLeNetBuilder(
   val seed: Long = 123l,
   val iterations: Int = 90
 ) {
-  def build(): ComputationGraph = {
+  def build(): ComputationGraphConfiguration = {
     val builder: ComputationGraphConfiguration.GraphBuilder = new NeuralNetConfiguration.Builder()
       .seed(seed)
       .iterations(iterations)
@@ -629,10 +629,6 @@ class GoogLeNetBuilder(
 
     val conf = builder.build
 
-    val model = new ComputationGraph(conf)
-
-    model.init()
-
-    model
+    conf
   }
 }

@@ -5,6 +5,7 @@ package com.foursquare.rec.server.training.image
 import java.io.File
 import java.util.Random
 import java.util.concurrent.ConcurrentLinkedQueue
+
 import org.datavec.api.io.filters.BalancedPathFilter
 import org.datavec.api.io.labels.ParentPathLabelGenerator
 import org.datavec.api.split.FileSplit
@@ -13,6 +14,7 @@ import org.datavec.image.recordreader.ImageRecordReader
 import org.datavec.image.transform.{CropImageTransform, FlipImageTransform, ScaleImageTransform, WarpImageTransform}
 import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator
 import org.deeplearning4j.eval.Evaluation
+import org.deeplearning4j.nn.graph.ComputationGraph
 import org.deeplearning4j.optimize.listeners.ScoreIterationListener
 import org.deeplearning4j.util.ModelSerializer
 import org.nd4j.linalg.dataset.DataSet
@@ -91,7 +93,9 @@ class ImageCNNTrainer {
     val width = 224
     val channels = 3
     val builder = new GoogLeNetBuilder(height, width)
-    val model = builder.build
+    val conf = builder.build
+    val model = new ComputationGraph(conf)
+    model.init()
 
     val nEpochs = 1000
     val trainingBatchSize = 32 // Consider increase this to fully utilize the GPU memory.

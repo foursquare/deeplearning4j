@@ -13,6 +13,7 @@ import org.datavec.image.recordreader.ImageRecordReader
 import org.datavec.image.transform.{CropImageTransform, FlipImageTransform, MultiImageTransform, ResizeImageTransform}
 import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator
 import org.deeplearning4j.eval.Evaluation
+import org.deeplearning4j.nn.graph.ComputationGraph
 import org.deeplearning4j.optimize.listeners.ScoreIterationListener
 import org.deeplearning4j.util.ModelSerializer
 
@@ -24,7 +25,18 @@ object ImageCNNBaselineTrainerApp extends App {
   val numOfClasses = args(1).toInt
   val trainer = new ImageCNNBaselineTrainer
 
-  trainer.train(parentDirPath, numOfClasses)
+  // trainer.train(parentDirPath, numOfClasses)
+  val height = 224
+  val width = 224
+  val channels = 3
+  // val builder = new GoogLeNetBuilder(height, width)
+  // val conf = builder.build
+
+  // NetComparer.compare(conf, "/Users/zen/src/caffe/models/bvlc_googlenet/train_val.prototxt")
+  val netParam = NetComparer.loadCaffeModel("/Users/zen/src/caffe/models/bvlc_googlenet/train_val.prototxt")
+  val caffeModel = NetComparer.convertToGraph(netParam)
+
+  caffeModel
 }
 
 // This trainer used exact settings in Caffe's GoogLeNet model, except I increased the crop size.
@@ -35,7 +47,9 @@ class ImageCNNBaselineTrainer {
     val width = 224
     val channels = 3
     val builder = new GoogLeNetBuilder(height, width)
-    val model = builder.build
+    val conf = builder.build
+    val model = new ComputationGraph(conf)
+    model.init()
 
     val nEpochs = 1
     val trainingBatchSize = 32

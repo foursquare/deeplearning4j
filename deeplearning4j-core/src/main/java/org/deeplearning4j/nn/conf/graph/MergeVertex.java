@@ -129,7 +129,8 @@ public class MergeVertex extends GraphVertex {
                 int ow = otherConv.getWidth();
                 int oh = otherConv.getHeight();
 
-                if(fw != ow || fh != oh){
+                // Check concat_layer.cpp in Caffe, "All inputs must have the same shape, except at concat_axis."
+                if((fw != ow || fh != oh)){
                     throw new InvalidInputTypeException("Invalid input: MergeVertex cannot merge CNN activations of different width/heights:"
                             + "first [depth,width,height] = [" + fd + "," + fw + "," + fh + "], input " + i + " = [" + od + "," + ow + "," + oh + "]");
                 }
